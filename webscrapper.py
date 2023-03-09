@@ -1,43 +1,35 @@
+import requests
 from bs4 import BeautifulSoup
-import requests, openpyxl
+import pandas as pd
 
-excel = openpyxl.Workbook()
-print(excel.sheetnames)
-sheet = excel.active
-sheet.title = 'Top Rated Movies'
-print(excel.sheetnames)
-sheet.append(['Movie Rank','Movie Name','Year of Release','IMDB Rating'])
+# Define the URL of the IMDb Top 100 page
+url = 'https://www.imdb.com/chart/top/'
 
+# Send a GET request to the URL and get the page content
+response = requests.get(url)
+page_content = response.text
 
+# Parse the page content using BeautifulSoup
+soup = BeautifulSoup(page_content, 'html.parser')
 
+# Find the table that contains the top 100 movies
+table = soup.find('table', {'class': 'chart full-width'})
 
+# Find all the rows in the table and loop through them
+data = []
+rows = table.find_all('tr')[1:]
+for row in rows:
+    # Find the title of the movie
+    title = row.find('td', {'class': 'titleColumn'}).find('a').text.strip()
 
-try:
-    source = requests.get('https://www.imdb.com/chart/top/')
-    source.raise_for_status()
+    # Find the rating of the movie
+    rating = row.find('td', {'class': 'ratingColumn imdbRating'}).find('strong').text.strip()
 
-    soup = BeautifulSoup(source.text,'html.parser')
+    # Append the data to a list
+    data.append([title, rating])
 
-    movies = soup.find('tbody', class_="lister-list").find_all('tr')
-    movies_list = []
+# Create a DataFrame from the data
+df = pd.DataFrame(data, columns=['Title', 'Rating'])
 
-    for movie in movies:
-
-        name = movie.find('td', class_='titleColumn').a.text
-
-        rank = movie.find('td', class_='titleColumn').get_text(strip=True).split('.')[0]
-
-        year = movie.find('td', class_='titleColumn').span.text.strip('()')
-
-        rating = movie.find('td', class_='ratingColumn imdbRating').strong.text
-
-
-        sheet.append([rank,name,year,rating])
-
-
-
-except Exception as e:
-    print(e)
-
-excel.save('IMDB Movie Ratings.xlsx')
-
+# Save the DataFrame to an Excel file
+df.to_excel('top_100_movies.xlsx', index=False)
