@@ -1,0 +1,22 @@
+-- Create a new database called "movies"
+CREATE DATABASE movies;
+
+-- Use the "movies" database
+USE movies;
+
+-- Create a new table called "top_movies" to store the data
+CREATE TABLE top_movies (
+    id INT NOT NULL AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    rating FLOAT NOT NULL,
+    PRIMARY KEY (id)
+);
+
+-- Insert the data into the "top_movies" table
+-- You will need to replace the file path with the correct path to your Excel file
+LOAD DATA INFILE 'path/to/top_100_movies.xlsx'
+INTO TABLE top_movies
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS;
